@@ -23,8 +23,30 @@ describe("asyncExtender", () => {
 		expect(computed()).to.equal(defaultValue)
 	})
 
-	it("should work with Promises that return arrays", async function() {
-		const computed = asyncExtender(ko, ko.computed(() => new Promise(resolve => resolve([1,2,3]))), null)
+	it("should track dependencies", async function() {
+		let count = 0;
+
+		const computed = asyncExtender(ko, ko.computed(() => new Promise(resolve => {
+			setTimeout(() => resolve("first"), 2)
+		})), "")
+
+		const computed2 = asyncExtender(ko, ko.computed(() => new Promise(resolve => {
+			const c = computed()
+			setTimeout(() => resolve(c + " second"), 2)
+		})), "")
+
+		const computed3 = asyncExtender(ko, ko.computed(() => new Promise(resolve => {
+			const c = computed2()
+			setTimeout(() => resolve(c + " third"), 2)
+		})), "")
+		
+		await wait(10)
+
+		expect(computed3()).to.equal("first second third")
+	})
+
+	it("should work with Promises that return arrays if default value is array", async function() {
+		const computed = asyncExtender(ko, ko.computed(() => new Promise(resolve => resolve([1,2,3]))), [])
 
 		await wait()
 
