@@ -1,0 +1,27 @@
+{
+  "name": "knockout-async-computed",
+  "version": "1.0.0",
+  "description": "Knockout extender that allows you to wrap Promises as computed observables",
+  "main": "dist/knockout-async-computed.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stephenjjbrown/knockout-async-computed.git"
+  },
+  "author": "Stephen Brown",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/stephenjjbrown/knockout-async-computed/issues"
+  },
+  "homepage": "https://github.com/stephenjjbrown/knockout-async-computed#readme",
+  "devDependencies": {
+    "@types/chai": "^4.1.4",
+    "@types/jasmine": "^2.8.8",
+    "chai": "^4.1.2",
+    "istanbul": "^0.4.5",
+    "jasmine-node": "^1.15.0",
+    "typescript": "^2.9.2"
+  }
+}
