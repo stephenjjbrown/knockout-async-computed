@@ -4,6 +4,7 @@ node_js:
 before_install:
 - pip install --user codecov
 - npm install -g typescript
+- npm install -g jasmine
 script:
 - npm test
 after_success:
