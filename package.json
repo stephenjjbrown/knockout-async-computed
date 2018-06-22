@@ -4,7 +4,7 @@
   "description": "Knockout extender that allows you to wrap Promises as computed observables",
   "main": "dist/knockout-async-computed.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "istanbul cover --include-all-sources jasmine-node spec"
   },
   "repository": {
     "type": "git",

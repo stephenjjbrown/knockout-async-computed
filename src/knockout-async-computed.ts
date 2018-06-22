@@ -1,4 +1,4 @@
-export const asyncExtender = <T>(computed: KnockoutComputed<Promise<T>>, defaultValue: T): KnockoutObservable<T> => {
+export const asyncExtender = <T>(ko: KnockoutStatic, computed: KnockoutComputed<Promise<T>>, defaultValue: T): KnockoutObservable<T> => {
 	let result: KnockoutObservable<any>;
 	if (Array.isArray(defaultValue)) {
 		result = ko.observableArray(defaultValue) as any;

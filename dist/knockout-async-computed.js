@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.asyncExtender = function (computed, defaultValue) {
+exports.asyncExtender = function (ko, computed, defaultValue) {
     var result;
     if (Array.isArray(defaultValue)) {
         result = ko.observableArray(defaultValue);

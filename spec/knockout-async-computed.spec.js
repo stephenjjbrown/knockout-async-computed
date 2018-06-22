@@ -7,7 +7,7 @@ const wait = (ms = 0) => new Promise(resolve => setTimeout(() => resolve(), ms))
 
 describe("asyncExtender", () => {
 	it("should return the result of a promise", async () => {
-		const computed = asyncExtender(ko.computed(() => new Promise(resolve => resolve(3))), null)
+		const computed = asyncExtender(ko, ko.computed(() => new Promise(resolve => resolve(3))), null)
 
 		await wait()
 
