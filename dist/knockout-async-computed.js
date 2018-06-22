@@ -28,7 +28,8 @@ exports.asyncExtender = function (ko, computed, defaultValue) {
                     result["__inProgress__"](false);
                     result(data);
                 }).catch(function (error) {
-                    // console.info("Promise rejected to ensure correct order of async calls");
+                    //throw error;
+                    //console.log("Promise rejected to ensure correct order of async calls");
                 });
                 promise.then(intermediatePromiseResolve);
             }
