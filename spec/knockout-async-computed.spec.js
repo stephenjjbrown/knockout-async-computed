@@ -53,5 +53,17 @@ describe("asyncExtender", () => {
 		expect(computed()).to.deep.equal([1,2,3])
 	})
 
+	it("should accept non-promise computed result", async function() {
+		const computed = asyncExtender(ko, ko.computed(() => 3), null)
+
+		expect(computed()).to.equal(3)
+	})
+
+	it("should return default value computed returns null", async function() {
+		const computed = asyncExtender(ko, ko.computed(() => null), [])
+
+		expect(computed()).to.deep.equal([])
+	})
+
 
 })
