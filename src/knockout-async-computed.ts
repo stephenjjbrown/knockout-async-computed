@@ -1,47 +1,36 @@
 export const asyncExtender = <T>(ko: KnockoutStatic, computed: KnockoutComputed<Promise<T>>, defaultValue: T): KnockoutObservable<T> => {
-	let result: KnockoutObservable<any>;
-	if (Array.isArray(defaultValue)) {
-		result = ko.observableArray(defaultValue) as any;
-	} else {
-		result = ko.observable(defaultValue);
-	}
-	result["__inProgress__"] = ko.observable(false);
+	const innerObservable = ko.observable(defaultValue);
 
-	let intermediatePromise: Promise<any> | null;
-	let intermediatePromiseResolve;
-	let intermediatePromiseReject;
+	let latestPromiseReject: ((reason?: any) => void) | null;
 
-	ko.computed(() => {
-		if (intermediatePromise) {
-			intermediatePromiseReject();
-			intermediatePromise = null;
-		}
-
+	const evaluateComputed = () => {
 		const promise = computed();
-
-		if (promise != null) {
-			if ((typeof promise.then === "function")) {
-				result["__inProgress__"](true);
-
-				intermediatePromise = new Promise((resolve, reject) => {
-					intermediatePromiseResolve = resolve;
-					intermediatePromiseReject = reject;
-				}).then((data: any) => {
-					result["__inProgress__"](false);
-					result(data);
-				}).catch(error => {
-					//throw error;
-					//console.log("Promise rejected to ensure correct order of async calls");
-				});
-
-				promise.then(intermediatePromiseResolve);
-			} else {
-				result(promise);
-			}
+		if (promise != null && promise.then) {
+			return promise
 		} else {
-			result(defaultValue);
+			throw new Error("Computed must return Promise or be async function")
 		}
-	});
+	}
 
-	return result;
+	const evaluatePromise = (p: Promise<T>) => {
+		if (latestPromiseReject)
+			latestPromiseReject()
+
+		// Wrap the source Promise, so that we can cancel it if it's still in progress when a new value becomes needed
+		new Promise<T>((resolve, reject) => {
+			latestPromiseReject = reject;
+			const promise = evaluateComputed();
+			promise.then(v => resolve(v))
+			promise.catch(err => reject(err))
+		})
+		.then(v => innerObservable(v))
+		.catch((err) => {
+			latestPromiseReject = null
+		})
+	}
+	evaluatePromise(evaluateComputed());
+
+	computed.subscribe(p => evaluatePromise(p))
+
+	return innerObservable;
 }

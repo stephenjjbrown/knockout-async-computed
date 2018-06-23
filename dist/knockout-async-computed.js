@@ -1,46 +1,34 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.asyncExtender = function (ko, computed, defaultValue) {
-    var result;
-    if (Array.isArray(defaultValue)) {
-        result = ko.observableArray(defaultValue);
-    }
-    else {
-        result = ko.observable(defaultValue);
-    }
-    result["__inProgress__"] = ko.observable(false);
-    var intermediatePromise;
-    var intermediatePromiseResolve;
-    var intermediatePromiseReject;
-    ko.computed(function () {
-        if (intermediatePromise) {
-            intermediatePromiseReject();
-            intermediatePromise = null;
-        }
+    var innerObservable = ko.observable(defaultValue);
+    var latestPromiseReject;
+    var evaluateComputed = function () {
         var promise = computed();
-        if (promise != null) {
-            if ((typeof promise.then === "function")) {
-                result["__inProgress__"](true);
-                intermediatePromise = new Promise(function (resolve, reject) {
-                    intermediatePromiseResolve = resolve;
-                    intermediatePromiseReject = reject;
-                }).then(function (data) {
-                    result["__inProgress__"](false);
-                    result(data);
-                }).catch(function (error) {
-                    //throw error;
-                    //console.log("Promise rejected to ensure correct order of async calls");
-                });
-                promise.then(intermediatePromiseResolve);
-            }
-            else {
-                result(promise);
-            }
+        if (promise != null && promise.then) {
+            return promise;
         }
         else {
-            result(defaultValue);
+            throw new Error("Computed must return Promise or be async function");
         }
-    });
-    return result;
+    };
+    var evaluatePromise = function (p) {
+        if (latestPromiseReject)
+            latestPromiseReject();
+        // Wrap the source Promise, so that we can cancel it if it's still in progress when a new value becomes needed
+        new Promise(function (resolve, reject) {
+            latestPromiseReject = reject;
+            var promise = evaluateComputed();
+            promise.then(function (v) { return resolve(v); });
+            promise.catch(function (err) { return reject(err); });
+        })
+            .then(function (v) { return innerObservable(v); })
+            .catch(function (err) {
+            latestPromiseReject = null;
+        });
+    };
+    evaluatePromise(evaluateComputed());
+    computed.subscribe(function (p) { return evaluatePromise(p); });
+    return innerObservable;
 };
 //# sourceMappingURL=knockout-async-computed.js.map
