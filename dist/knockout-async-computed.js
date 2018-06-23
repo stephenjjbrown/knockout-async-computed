@@ -1,6 +1,7 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.asyncExtender = function (ko, computed, defaultValue) {
+var ko = require("knockout");
+exports.computedPromise = function (ko, computed, defaultValue) {
     var innerObservable = ko.observable(defaultValue);
     var latestPromiseReject;
     var evaluateComputed = function () {
@@ -31,4 +32,15 @@ exports.asyncExtender = function (ko, computed, defaultValue) {
     computed.subscribe(function (p) { return evaluatePromise(p); });
     return innerObservable;
 };
+var createExtender = function (ko) { return function (computed, defaultValue) { return exports.computedPromise(ko, computed, defaultValue); }; };
+// declare global {
+// 	interface KnockoutExtenders {
+// 		async: ReturnType<typeof createExtender>
+// 	}
+// }
+function registerAsyncComputed(ko) {
+    ko.extenders.async = createExtender(ko);
+}
+exports.registerAsyncComputed = registerAsyncComputed;
+exports.asyncComputed = function (getPromise, defaultValue) { return exports.computedPromise(ko, ko.computed(function () { return getPromise(); }), defaultValue); };
 //# sourceMappingURL=knockout-async-computed.js.map

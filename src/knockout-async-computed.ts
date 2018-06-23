@@ -1,4 +1,6 @@
-export const asyncExtender = <T>(ko: KnockoutStatic, computed: KnockoutComputed<Promise<T>>, defaultValue: T): KnockoutObservable<T> => {
+import * as ko from "knockout";
+
+export const computedPromise = <T>(ko: KnockoutStatic, computed: KnockoutComputed<Promise<T>>, defaultValue: T): KnockoutObservable<T> => {
 	const innerObservable = ko.observable(defaultValue);
 
 	let latestPromiseReject: ((reason?: any) => void) | null;
@@ -34,3 +36,17 @@ export const asyncExtender = <T>(ko: KnockoutStatic, computed: KnockoutComputed<
 
 	return innerObservable;
 }
+
+const createExtender = (ko: KnockoutStatic) => <T>(computed: KnockoutComputed<Promise<T>>, defaultValue: T) => computedPromise(ko,computed,defaultValue)
+
+// declare global {
+// 	interface KnockoutExtenders {
+// 		async: ReturnType<typeof createExtender>
+// 	}
+// }
+
+export function registerAsyncComputed(ko: KnockoutStatic) {
+	(ko.extenders as any).async = createExtender(ko)
+}
+
+export const asyncComputed = <T>(getPromise: () => Promise<T>, defaultValue: T) => computedPromise(ko, ko.computed(() => getPromise()), defaultValue)

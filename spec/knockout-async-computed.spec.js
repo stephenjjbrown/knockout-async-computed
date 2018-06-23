@@ -2,14 +2,14 @@ const chai = require("chai");
 chai.use(require("chai-as-promised"))
 const expect = chai.expect; 
 const ko = require("knockout");
-const { asyncExtender } = require("../dist/knockout-async-computed");
+const { computedPromise, registerAsyncComputed, asyncComputed} = require("../dist/knockout-async-computed");
 
 // Wait for promise to resolve
 const wait = (ms = 0) => new Promise(resolve => setTimeout(() => resolve(), ms))
 
 describe("asyncExtender", () => {
 	it("should return the result of a Promise", async function() {
-		const computed = asyncExtender(ko, ko.computed(() => new Promise(resolve => resolve(3))), null)
+		const computed = computedPromise(ko, ko.computed(() => new Promise(resolve => resolve(3))), null)
 
 		await wait()
 
@@ -18,24 +18,24 @@ describe("asyncExtender", () => {
 
 	it("should return the default value when Promise is unresolved", async function() {
 		const defaultValue = "default";
-		const computed = asyncExtender(ko, ko.computed(() => new Promise(resolve => {})), defaultValue)
+		const computed = computedPromise(ko, ko.computed(() => new Promise(resolve => {})), defaultValue)
 
 		expect(computed()).to.equal(defaultValue)
 	})
 
 	it("should track dependencies", async function() {
-		const computed = asyncExtender(ko, ko.computed(() => new Promise(resolve => {
+		const computed = computedPromise(ko, ko.computed(() => new Promise(resolve => {
 			setTimeout(() => resolve("first"), 1)
 		})), "")
 
 		let c2 = 0;
-		const computed2 = asyncExtender(ko, ko.computed(() => new Promise(resolve => {
+		const computed2 = computedPromise(ko, ko.computed(() => new Promise(resolve => {
 			const c = computed()
 			c2++;
 			setTimeout(() => resolve(c + " second"), 1)
 		})), "")
 
-		const computed3 = asyncExtender(ko, ko.computed(() => new Promise(resolve => {
+		const computed3 = computedPromise(ko, ko.computed(() => new Promise(resolve => {
 			const c = computed2()
 			setTimeout(() => resolve(c + " third"), 1)
 		})), "")
@@ -52,20 +52,20 @@ describe("asyncExtender", () => {
 	})
 
 	it("should track dependencies with async functions", async function() {
-		const computed = asyncExtender(ko, ko.computed(async () => {
+		const computed = computedPromise(ko, ko.computed(async () => {
 			await wait(1)
 			return "first"
 		}), "")
 
 		let c2 = 0;
-		const computed2 = asyncExtender(ko, ko.computed(async () => {
+		const computed2 = computedPromise(ko, ko.computed(async () => {
 			const c = computed()
 			c2++;
 			await wait(1);
 			return c + " second";
 		}), "")
 
-		const computed3 = asyncExtender(ko, ko.computed(async () => {
+		const computed3 = computedPromise(ko, ko.computed(async () => {
 			const c = computed2()
 			await wait(1);
 			return c + " third"
@@ -84,7 +84,7 @@ describe("asyncExtender", () => {
 
 	it("should return Promises in correct order", async () => {
 		const time = ko.observable(6);
-		const computed = asyncExtender(ko, ko.computed(() => {
+		const computed = computedPromise(ko, ko.computed(() => {
 			return new Promise(resolve => {
 				setTimeout(() => {
 					resolve(time())
@@ -102,7 +102,7 @@ describe("asyncExtender", () => {
 	})
 
 	it("should work with Promises that return arrays if default value is array", async function() {
-		const computed = asyncExtender(ko, ko.computed(() => new Promise(resolve => resolve([1,2,3]))), [])
+		const computed = computedPromise(ko, ko.computed(() => new Promise(resolve => resolve([1,2,3]))), [])
 
 		await wait()
 
@@ -110,7 +110,7 @@ describe("asyncExtender", () => {
 	})
 	
 	it("should accept an async function", async () => {
-		const computed = asyncExtender(ko, ko.computed(async () => 3), -1)
+		const computed = computedPromise(ko, ko.computed(async () => 3), -1)
 
 		await wait()
 
@@ -118,6 +118,34 @@ describe("asyncExtender", () => {
 	})
 
 	it("should throw error if non-Promise function supplied", async () => {
-		expect(() => asyncExtender(ko, ko.computed(() => 3), -1)).to.throw()
+		expect(() => computedPromise(ko, ko.computed(() => 3), -1)).to.throw()
+	})
+
+	it("can be used as extender", async () => {
+		registerAsyncComputed(ko)
+
+		const computed = ko.computed(async () => {
+			await wait(2)
+			return 3;
+		}).extend({async: -1})
+
+		expect(computed()).to.equal(-1)
+		await wait(3)
+
+		expect(computed()).to.equal(3)
+	})
+
+	it("can be used as factory", async () => {
+		registerAsyncComputed(ko)
+
+		const computed = asyncComputed(async () => {
+			await wait(2)
+			return 3;
+		}, -1)
+
+		expect(computed()).to.equal(-1)
+		await wait(3)
+
+		expect(computed()).to.equal(3)
 	})
 })
