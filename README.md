@@ -8,7 +8,51 @@ A Knockout extender that allows you to easily wrap a promise as a computed obser
 
 ## Usage
 
-(TODO: insert usage examples here)
+### As an extender
+
+```typescript
+// Registers the extender on global ko object
+registerAsyncComputed(ko)
+
+// Pass async function as computed getter
+// or pass in regular function that returns Promise
+const computed = ko.computed(async () => {
+
+	// Do something here
+	return fetch("/api/entities.json")
+		.then(r => r.json())
+		
+}).extend({async: []}) //  Provide initial value. This is used until the async function is completed for the first time
+
+computed() // Returns [], since fetch has not yet finished
+
+computed.subscribe(value => {
+	console.log(value) // Returns result of async function
+})
+```
+
+### As a factory (recommended for Typescript)
+
+```typescript
+import {asyncComputed} from "knockout-async-computed"
+
+// Create using factory function
+// Pass async function or regular function that returns Promise
+const observable = asyncComputed(async () => {
+
+	// Do something here
+	return fetch("/api/entities.json")
+		.then(r => r.json()) as Entity[]
+		
+}, []) // Provide initial value as 2nd argument
+
+// Correctly typed as KnockoutObservable<Entity[]>
+observable() // Returns [], since fetch has not yet finished
+
+observable.subscribe(value => {
+	console.log(value) // Returns result of async function
+})
+```
 
 ## Requirements
 
