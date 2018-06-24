@@ -1,7 +1,7 @@
 {
   "name": "knockout-async-computed",
   "version": "1.0.0",
-  "description": "Knockout extender that allows you to wrap Promises as computed observables",
+  "description": "Allows you to use async functions or Promises as computed observables",
   "main": "dist/knockout-async-computed.js",
   "scripts": {
     "test": "nyc --reporter=lcov jasmine"
