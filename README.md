@@ -4,54 +4,44 @@
 
 # Knockout Async Computed
 
-A Knockout extender that allows you to easily wrap a promise as a computed observable.
+Allows you to easily create computed observables from async functions or Promises.
+
+Dependencies between async computeds are automatically tracked by Knockout, just like any other computed. If an older async operation takes longer than a more recent one, the older one is automatically cancelled (the Promise rejected), ensuring you always get the most current value.
+
+Combine this library with a memoize library to reduce repeat network calls to the same resource.
 
 ## Usage
 
 ### As an extender
 
-```typescript
-// Registers the extender on global ko object
+```javascript
+// Adds the extender to ko.extenders
 registerAsyncComputed(ko)
 
-// Pass async function as computed getter
-// or pass in regular function that returns Promise
-const computed = ko.computed(async () => {
+// Pass async function or regular function that returns Promise
+const items = ko.computed(async () => {
 
-	// Do something here
-	return fetch("/api/entities.json")
-		.then(r => r.json())
-		
+   // Do something here
+   return fetch("/api/entities.json")
+      .then(r => r.json())
+      
 }).extend({async: []}) //  Provide initial value. This is used until the async function is completed for the first time
-
-computed() // Returns [], since fetch has not yet finished
-
-computed.subscribe(value => {
-	console.log(value) // Returns result of async function
-})
 ```
 
 ### As a factory (recommended for Typescript)
 
-```typescript
-import {asyncComputed} from "knockout-async-computed"
+```javascript
+import { asyncComputed } from "knockout-async-computed"
 
 // Create using factory function
 // Pass async function or regular function that returns Promise
-const observable = asyncComputed(async () => {
+const items = asyncComputed(async () => {
 
-	// Do something here
-	return fetch("/api/entities.json")
-		.then(r => r.json()) as Entity[]
-		
+   // Do something here
+   return fetch("/api/entities.json")
+      .then(r => r.json())
+      
 }, []) // Provide initial value as 2nd argument
-
-// Correctly typed as KnockoutObservable<Entity[]>
-observable() // Returns [], since fetch has not yet finished
-
-observable.subscribe(value => {
-	console.log(value) // Returns result of async function
-})
 ```
 
 ## Requirements

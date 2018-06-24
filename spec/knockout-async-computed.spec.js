@@ -40,7 +40,7 @@ describe("asyncExtender", () => {
 			setTimeout(() => resolve(c + " third"), 1)
 		})), "")
 
-		await wait(5)
+		await wait(6)
 
 		expect(computed3()).to.equal("first second third")
 		computed("newfirst")
