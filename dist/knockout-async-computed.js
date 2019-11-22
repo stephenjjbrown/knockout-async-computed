@@ -1,8 +1,10 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 var ko = require("knockout");
 exports.computedPromise = function (ko, computed, defaultValue) {
     var innerObservable = ko.observable(defaultValue);
     innerObservable.inProgress = ko.observable(false);
-    var latestPromiseReject = null;
+    var latestPromiseReject;
     var evaluateComputed = function () {
         var promise = computed();
         if (promise != null && promise.then) {
@@ -13,8 +15,10 @@ exports.computedPromise = function (ko, computed, defaultValue) {
         }
     };
     var evaluatePromise = function (p) {
-        if (latestPromiseReject)
+        if (latestPromiseReject) {
+            console.log('Rejecting...');
             latestPromiseReject();
+        }
         innerObservable.inProgress(true);
         // Wrap the source Promise, so that we can cancel it if it's still in progress when a new value becomes needed
         new Promise(function (resolve, reject) {
@@ -42,10 +46,8 @@ var createExtender = function (ko) { return function (computed, defaultValue) { 
 // 	}
 // }
 function registerAsyncComputed(ko) {
-    (ko.extenders);
-    as;
-    any;
-    async = createExtender(ko);
+    ko.extenders.async = createExtender(ko);
 }
 exports.registerAsyncComputed = registerAsyncComputed;
 exports.asyncComputed = function (getPromise, defaultValue) { return exports.computedPromise(ko, ko.computed(function () { return getPromise(); }), defaultValue); };
+//# sourceMappingURL=knockout-async-computed.js.map

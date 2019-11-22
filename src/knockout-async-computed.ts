@@ -2,7 +2,7 @@ import * as ko from "knockout";
 
 export const computedPromise = <T>(ko: KnockoutStatic, computed: KnockoutComputed<Promise<T>>, defaultValue: T): KnockoutObservable<T> => {
 	const innerObservable = ko.observable(defaultValue);
-	innerObservable.inProgress = ko.observable(false);
+	(innerObservable as any).inProgress = ko.observable(false);
 
 	let latestPromiseReject: ((reason?: any) => void) | null;
 
@@ -16,10 +16,12 @@ export const computedPromise = <T>(ko: KnockoutStatic, computed: KnockoutCompute
 	}
 
 	const evaluatePromise = (p: Promise<T>) => {
-		if (latestPromiseReject)
+		if (latestPromiseReject) {
+			console.log('Rejecting...');
 			latestPromiseReject();
-		
-		innerObservable.inProgress(true);
+		}
+
+		(innerObservable as any).inProgress(true);
 
 		// Wrap the source Promise, so that we can cancel it if it's still in progress when a new value becomes needed
 		new Promise<T>((resolve, reject) => {
@@ -28,22 +30,22 @@ export const computedPromise = <T>(ko: KnockoutStatic, computed: KnockoutCompute
 			promise.then(v => resolve(v))
 			promise.catch(err => reject(err))
 		})
-		.then(v => {
-			innerObservable.inProgress(false);
-			innerObservable(v);
-		})
-		.catch((err) => {
-			latestPromiseReject = null
-		})
+			.then(v => {
+				(innerObservable as any).inProgress(false);
+				innerObservable(v);
+			})
+			.catch((err) => {
+				latestPromiseReject = null
+			})
 	}
-	evaluatePromise(evaluateComputed());
 
+	evaluatePromise(evaluateComputed());
 	computed.subscribe(p => evaluatePromise(p))
 
 	return innerObservable;
 }
 
-const createExtender = (ko: KnockoutStatic) => <T>(computed: KnockoutComputed<Promise<T>>, defaultValue: T) => computedPromise(ko,computed,defaultValue)
+const createExtender = (ko: KnockoutStatic) => <T>(computed: KnockoutComputed<Promise<T>>, defaultValue: T) => computedPromise(ko, computed, defaultValue)
 
 // declare global {
 // 	interface KnockoutExtenders {
