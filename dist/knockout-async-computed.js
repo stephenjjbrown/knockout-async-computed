@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 var ko = require("knockout");
 exports.computedPromise = function (ko, computed, defaultValue) {
     var innerObservable = ko.observable(defaultValue);
+    innerObservable.inProgress = ko.observable(false);
     var latestPromiseReject;
     var evaluateComputed = function () {
         var promise = computed();
@@ -14,8 +15,11 @@ exports.computedPromise = function (ko, computed, defaultValue) {
         }
     };
     var evaluatePromise = function (p) {
-        if (latestPromiseReject)
+        if (latestPromiseReject) {
+            console.log('Rejecting...');
             latestPromiseReject();
+        }
+        innerObservable.inProgress(true);
         // Wrap the source Promise, so that we can cancel it if it's still in progress when a new value becomes needed
         new Promise(function (resolve, reject) {
             latestPromiseReject = reject;
@@ -23,7 +27,10 @@ exports.computedPromise = function (ko, computed, defaultValue) {
             promise.then(function (v) { return resolve(v); });
             promise.catch(function (err) { return reject(err); });
         })
-            .then(function (v) { return innerObservable(v); })
+            .then(function (v) {
+            innerObservable.inProgress(false);
+            innerObservable(v);
+        })
             .catch(function (err) {
             latestPromiseReject = null;
         });
