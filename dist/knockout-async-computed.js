@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+exports.asyncComputed = exports.registerAsyncComputed = exports.computedPromise = void 0;
 var ko = require("knockout");
-exports.computedPromise = function (ko, computed, defaultValue) {
+var computedPromise = function (ko, computed, defaultValue) {
     var innerObservable = ko.observable(defaultValue);
     innerObservable.inProgress = ko.observable(false);
     var latestPromiseReject;
@@ -16,7 +17,6 @@ exports.computedPromise = function (ko, computed, defaultValue) {
     };
     var evaluatePromise = function (p) {
         if (latestPromiseReject) {
-            console.log('Rejecting...');
             latestPromiseReject();
         }
         innerObservable.inProgress(true);
@@ -39,7 +39,8 @@ exports.computedPromise = function (ko, computed, defaultValue) {
     computed.subscribe(function (p) { return evaluatePromise(p); });
     return innerObservable;
 };
-var createExtender = function (ko) { return function (computed, defaultValue) { return exports.computedPromise(ko, computed, defaultValue); }; };
+exports.computedPromise = computedPromise;
+var createExtender = function (ko) { return function (computed, defaultValue) { return (0, exports.computedPromise)(ko, computed, defaultValue); }; };
 // declare global {
 // 	interface KnockoutExtenders {
 // 		async: ReturnType<typeof createExtender>
@@ -49,5 +50,6 @@ function registerAsyncComputed(ko) {
     ko.extenders.async = createExtender(ko);
 }
 exports.registerAsyncComputed = registerAsyncComputed;
-exports.asyncComputed = function (getPromise, defaultValue) { return exports.computedPromise(ko, ko.computed(function () { return getPromise(); }), defaultValue); };
+var asyncComputed = function (getPromise, defaultValue) { return (0, exports.computedPromise)(ko, ko.computed(function () { return getPromise(); }), defaultValue); };
+exports.asyncComputed = asyncComputed;
 //# sourceMappingURL=knockout-async-computed.js.map

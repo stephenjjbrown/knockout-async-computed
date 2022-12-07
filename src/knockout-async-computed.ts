@@ -1,6 +1,9 @@
 import * as ko from "knockout";
 
-export const computedPromise = <T>(ko: KnockoutStatic, computed: KnockoutComputed<Promise<T>>, defaultValue: T): KnockoutObservable<T> => {
+type _KoStatic = typeof ko;
+type _KoComputed = ReturnType<typeof ko.computed>;
+
+export const computedPromise = <T>(ko: _KoStatic, computed: ko.Computed<Promise<T>>, defaultValue: T): ko.Observable<T> => {
 	const innerObservable = ko.observable(defaultValue);
 	(innerObservable as any).inProgress = ko.observable(false);
 
@@ -17,7 +20,6 @@ export const computedPromise = <T>(ko: KnockoutStatic, computed: KnockoutCompute
 
 	const evaluatePromise = (p: Promise<T>) => {
 		if (latestPromiseReject) {
-			console.log('Rejecting...');
 			latestPromiseReject();
 		}
 
@@ -45,7 +47,7 @@ export const computedPromise = <T>(ko: KnockoutStatic, computed: KnockoutCompute
 	return innerObservable;
 }
 
-const createExtender = (ko: KnockoutStatic) => <T>(computed: KnockoutComputed<Promise<T>>, defaultValue: T) => computedPromise(ko, computed, defaultValue)
+const createExtender = (ko: _KoStatic) => <T>(computed: ko.Computed<Promise<T>>, defaultValue: T) => computedPromise(ko, computed, defaultValue)
 
 // declare global {
 // 	interface KnockoutExtenders {
@@ -53,7 +55,7 @@ const createExtender = (ko: KnockoutStatic) => <T>(computed: KnockoutComputed<Pr
 // 	}
 // }
 
-export function registerAsyncComputed(ko: KnockoutStatic) {
+export function registerAsyncComputed(ko:_KoStatic) {
 	(ko.extenders as any).async = createExtender(ko)
 }
 

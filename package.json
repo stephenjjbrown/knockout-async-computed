@@ -4,7 +4,7 @@
   "description": "Allows you to use async functions or Promises as computed observables",
   "main": "dist/knockout-async-computed.js",
   "scripts": {
-    "test": "nyc --reporter=lcov jasmine"
+    "test": "./node_modules/.bin/nyc --reporter=lcov ./node_modules/.bin/jasmine"
   },
   "repository": {
     "type": "git",
@@ -17,17 +17,17 @@
   },
   "homepage": "https://github.com/stephenjjbrown/knockout-async-computed#readme",
   "dependencies": {
-    "knockout": "^3.4.2"
+    "knockout": "^3.5.1"
   },
   "devDependencies": {
-    "@types/chai": "^4.1.4",
-    "@types/chai-as-promised": "^7.1.0",
-    "@types/jasmine": "^3.3.9",
-    "@types/knockout": "^3.4.56",
-    "chai": "^4.1.2",
+    "@types/chai": "^4.3.4",
+    "@types/chai-as-promised": "^7.1.5",
+    "@types/jasmine": "^4.3.1",
+    "chai": "^4.3.7",
     "chai-as-promised": "^7.1.1",
-    "jasmine-node": "^1.15.0",
-    "nyc": "^13.3.0",
-    "typescript": "^3.3.3"
+    "jasmine": "^4.5.0",
+    "jasmine-node": "^3.0.0",
+    "nyc": "^15.1.0",
+    "typescript": "^4.9.3"
   }
 }

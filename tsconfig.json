@@ -10,5 +10,8 @@
 			"dom"
 		],
 		"declaration": true
-	}
+	},
+	"include": [
+		"./src/*.ts"
+	]
 }
