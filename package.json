@@ -1,9 +1,10 @@
 {
   "name": "knockout-async-computed",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "Allows you to use async functions or Promises as computed observables",
   "main": "dist/knockout-async-computed.js",
   "scripts": {
+    "build": "./node_modules/.bin/tsc",
     "test": "./node_modules/.bin/nyc --reporter=lcov ./node_modules/.bin/jasmine"
   },
   "repository": {

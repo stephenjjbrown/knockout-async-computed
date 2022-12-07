@@ -40,12 +40,12 @@ describe("asyncExtender", () => {
 			setTimeout(() => resolve(c + " third"), 1)
 		})), "")
 
-		await wait(6)
+		await wait(10)
 
 		expect(computed3()).to.equal("first second third")
 		computed("newfirst")
 
-		await wait(5);
+		await wait(10);
 
 		expect(computed3()).to.equal("newfirst second third")
 		expect(c2).to.equal(3) // Was invoked 3 times, first upon creation, second when computed3 requested its value, and third when computed was updated
@@ -71,12 +71,12 @@ describe("asyncExtender", () => {
 			return c + " third"
 		}), "")
 
-		await wait(6)
+		await wait(10)
 
 		expect(computed3()).to.equal("first second third")
 		computed("newfirst")
 
-		await wait(5);
+		await wait(10);
 
 		expect(computed3()).to.equal("newfirst second third")
 		expect(c2).to.equal(3) // Was invoked 3 times, first upon creation, second when computed3 requested its value, and third when computed was updated
@@ -148,4 +148,59 @@ describe("asyncExtender", () => {
 
 		expect(computed()).to.equal(3)
 	})
+
+	it("should dispose getter computed", async () => {
+		registerAsyncComputed(ko)
+
+		// Serves as dependency that would make computed evaluate
+		const observable = ko.observable(0);
+
+		let m = 0; // Confirms whether computed was called
+
+		const computed = asyncComputed(async () => {
+			m = observable();
+			return;
+		}, -1)
+		await wait(1);
+
+		computed.dispose();
+
+		observable(1); // This would normally make computed getter run again
+		await wait(1);
+
+		expect(m).to.equal(0);
+	});
+
+	it("should dispose inner getter subscription", async () => {
+		registerAsyncComputed(ko)
+
+		const observable = ko.observable(0);
+
+		const computed = asyncComputed(async () => {
+			return observable();
+		}, -1);
+		await wait(1);
+
+		computed.dispose();
+
+		observable(1);// This would normally make computed's subscriptions fire
+		await wait(1);
+
+		expect(computed()).to.equal(0);
+	});
+
+	it("should reject promise if disposed", async () => {
+		registerAsyncComputed(ko)
+
+		const observable = ko.observable(0);
+
+		const computed = asyncComputed(async () => {
+			return observable();
+		}, -1);
+
+		computed.dispose();
+		await wait(1);
+
+		expect(computed()).to.equal(-1);
+	});
 })

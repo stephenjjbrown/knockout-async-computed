@@ -44,9 +44,14 @@ const items = asyncComputed(async () => {
 }, []) // Provide initial value as 2nd argument
 ```
 
-## Requirements
+## Build
 
-- Requires that Promise be available in the browser. A polyfill may be needed.
+If you wish to compile the module yourself:
+
+Run ```npm install``` to download dependencies, then run ```npm run build```
+
+Run ```npm test``` to run tests.
+
 
 ## License
 

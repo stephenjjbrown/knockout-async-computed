@@ -1,16 +1,22 @@
 import * as ko from "knockout";
 
 type _KoStatic = typeof ko;
-type _KoComputed = ReturnType<typeof ko.computed>;
 
-export const computedPromise = <T>(ko: _KoStatic, computed: ko.Computed<Promise<T>>, defaultValue: T): ko.Observable<T> => {
+interface AsyncExtended<T> {
+	getter: ko.Computed<Promise<T>>;
+	inProgress: ko.Observable<boolean>;
+	dispose: () => void;
+}
+
+export const computedPromise = <T>(ko: _KoStatic, getter: ko.Computed<Promise<T>>, defaultValue: T): ko.Observable<T> | AsyncExtended<T> => {
 	const innerObservable = ko.observable(defaultValue);
 	(innerObservable as any).inProgress = ko.observable(false);
+	(innerObservable as any).getter = getter;
 
-	let latestPromiseReject: ((reason?: any) => void) | null;
+	let existingPromiseReject: ((reason?: any) => void) | null;
 
-	const evaluateComputed = () => {
-		const promise = computed();
+	const runGetterAndEnsureIsPromise = () => {
+		const promise = getter();
 		if (promise != null && promise.then) {
 			return promise
 		} else {
@@ -18,42 +24,48 @@ export const computedPromise = <T>(ko: _KoStatic, computed: ko.Computed<Promise<
 		}
 	}
 
-	const evaluatePromise = (p: Promise<T>) => {
-		if (latestPromiseReject) {
-			latestPromiseReject();
+	const rejectAndGetValue = () => {
+		if (existingPromiseReject) {
+			existingPromiseReject();
 		}
 
 		(innerObservable as any).inProgress(true);
 
+		const promise = runGetterAndEnsureIsPromise();
+
 		// Wrap the source Promise, so that we can cancel it if it's still in progress when a new value becomes needed
 		new Promise<T>((resolve, reject) => {
-			latestPromiseReject = reject;
-			const promise = evaluateComputed();
+			existingPromiseReject = reject;
+			
 			promise.then(v => resolve(v))
 			promise.catch(err => reject(err))
 		})
 			.then(v => {
 				(innerObservable as any).inProgress(false);
 				innerObservable(v);
+				existingPromiseReject = null
 			})
 			.catch((err) => {
-				latestPromiseReject = null
+				existingPromiseReject = null
 			})
 	}
 
-	evaluatePromise(evaluateComputed());
-	computed.subscribe(p => evaluatePromise(p))
+	rejectAndGetValue();
+	const subscription = getter.subscribe(p => {
+		return rejectAndGetValue()
+	});
+
+	(innerObservable as any).dispose = () => {
+		subscription.dispose();
+		existingPromiseReject?.();
+		getter.dispose();
+	}
 
 	return innerObservable;
 }
 
 const createExtender = (ko: _KoStatic) => <T>(computed: ko.Computed<Promise<T>>, defaultValue: T) => computedPromise(ko, computed, defaultValue)
 
-// declare global {
-// 	interface KnockoutExtenders {
-// 		async: ReturnType<typeof createExtender>
-// 	}
-// }
 
 export function registerAsyncComputed(ko:_KoStatic) {
 	(ko.extenders as any).async = createExtender(ko)
