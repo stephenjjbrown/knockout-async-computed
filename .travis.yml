@@ -3,9 +3,9 @@ node_js:
 - '10.4'
 before_install:
 - pip install --user codecov
-- npm install -g typescript
-- npm install -g jasmine
 script:
+- npm install
+- npm run build
 - npm test
 after_success:
 - codecov --file coverage/lcov.info --disable search
