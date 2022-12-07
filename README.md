@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/stephenjjbrown/knockout-async-computed.svg?branch=master)](https://travis-ci.org/stephenjjbrown/knockout-async-computed)
+[![Build Status](https://app.travis-ci.com/stephenjjbrown/knockout-async-computed.svg?branch=master)](https://app.travis-ci.com/stephenjjbrown/knockout-async-computed)
 [![codecov](https://codecov.io/gh/stephenjjbrown/knockout-async-computed/branch/master/graph/badge.svg)](https://codecov.io/gh/stephenjjbrown/knockout-async-computed)
 [![Wallaby.js](https://img.shields.io/badge/wallaby.js-configured-green.svg)](https://wallabyjs.com)
 

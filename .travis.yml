@@ -1,6 +1,8 @@
 language: node_js
 node_js:
-- '10.4'
+- '16.6.1'
+npm:
+- '16.6.1'
 before_install:
 - pip install --user codecov
 - npm install -g typescript
